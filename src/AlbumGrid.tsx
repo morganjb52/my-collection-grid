@@ -16,9 +16,9 @@ const AlbumGrid: React.FC = () => {
 
   useEffect(() => {
     axios
-      .get('https://api.discogs.com/users/YOUR_USERNAME/collection/folders/0/releases', {
+      .get('https://api.discogs.com/users/morganjb/collection/folders/0/releases', {
         headers: {
-          Authorization: 'Discogs token=YOUR_TOKEN',
+          Authorization: 'Discogs token=jItQaeHFApOoAyRGwgbWrUeftWBxIvukAkjsqVRH',
           'User-Agent': 'MyDiscogsApp/1.0',
         },
       })
