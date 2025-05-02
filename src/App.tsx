@@ -1,5 +1,5 @@
 import React from 'react';
-import AlbumGrid from './components/AlbumGrid';
+import AlbumGrid from './components/AlbumGrid.tsx';
 
 function App() {
   return (

@@ -17,8 +17,13 @@ const AlbumGrid: React.FC = () => {
   useEffect(() => {
     axios
       .get('https://api.discogs.com/users/morganjb/collection/folders/0/releases', {
+        params: {
+          per_page: 100,
+          sort: 'added',
+          sort_order: 'desc',
+        },
         headers: {
-          Authorization: 'Discogs token=jItQaeHFApOoAyRGwgbWrUeftWBxIvukAkjsqVRH',
+          Authorization: 'Discogs token=RdrvXEBTzPsnMmycwuPtxQsGzeWkPzjsWFULdMvl',
           'User-Agent': 'MyDiscogsApp/1.0',
         },
       })
