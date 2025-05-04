@@ -27,6 +27,7 @@ const AlbumGrid: React.FC = () => {
 
   // Function to open the modal
   const openModal = (album: Album) => {
+    console.log("Opening Modal with album:", album);
     setSelectedAlbum(album);
     setIsModalOpen(true);
   };
@@ -57,9 +58,7 @@ const AlbumGrid: React.FC = () => {
           id: album.id,
           basic_information: album.basic_information,
           date_added: album.date_added,
-          location: album.location ?? 'Unknown', // Fallback if custom field is missing
-          purchase_date: album.purchase_date ?? 'Unknown', // Fallback
-          price_paid: album.price_paid ?? 0, // Fallback
+          notes: album.notes || [],
           last_price: album.last_price ?? 0, // Fallback
         }));
         setAlbums(formattedAlbums);
