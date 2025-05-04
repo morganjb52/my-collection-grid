@@ -6,6 +6,10 @@
 }
 
 .album-card {
+  
+    font-family: 'Satoshi', sans-serif;
+
+  
   background: #1e1e1e;
   color: white;
   padding: 10px;
