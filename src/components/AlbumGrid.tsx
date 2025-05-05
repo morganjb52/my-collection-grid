@@ -3,6 +3,10 @@ import axios from 'axios';
 import './AlbumGrid.css';
 import Modal from "./Modal.tsx";
 
+// Normalize function to make comparisons more consistent
+const normalize = (str: string) =>
+  str.toLowerCase().replace(/[^a-z0-9]/gi, '').trim();
+
 interface Album {
   id: number;
   basic_information: {
@@ -59,7 +63,7 @@ const AlbumGrid: React.FC = () => {
           basic_information: album.basic_information,
           date_added: album.date_added,
           notes: album.notes || [],
-          last_price: album.last_price ?? 0, // Fallback
+          last_price: album.lowest_price ?? 0, // Fallback
         }));
         setAlbums(formattedAlbums);
       })
