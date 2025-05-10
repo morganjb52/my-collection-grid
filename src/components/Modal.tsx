@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Modal.css';
 import { lastFmOverrides } from './manualOverrides.ts';
+import { X } from 'lucide-react';
 
 interface ModalProps {
   isOpen: boolean;
@@ -114,8 +115,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
   return (
     <div className="modal-overlay" onClick={closeModal}>
       <div className="modal-content" onClick={e => e.stopPropagation()}>
-        <button className="modal-close" onClick={closeModal}>
-          X
+      <button className="modal-close" onClick={closeModal}>
+        <X />
         </button>
         <img
           src={info.cover_image}
