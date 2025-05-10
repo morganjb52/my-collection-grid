@@ -118,29 +118,34 @@ const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
       <button className="modal-close" onClick={closeModal}>
         <X />
         </button>
-        <img
-          src={info.cover_image}
-          alt={info.title}
-          className="modal-image"
-        />
-        <div className="modal-details">
-          <h1>{info.title}</h1>
-          <h2>{info.artists[0]?.name}</h2>
-          <h4>{info.year}</h4>
-          <p><strong>Label:</strong> {info.labels[0]?.name}</p>
-          <p><strong>Date Added:</strong> {formattedDateAdded}</p>
-          <p><strong>Location Purchased:</strong> {customFields['Purchase location']}</p>
-          <p><strong>Purchase Date:</strong> {customFields['Date purchased']}</p>
-          <p><strong>Price Paid:</strong> ${customFields['Purchase price']}</p>
-          <p><strong>Last Marketplace Price:</strong> ${info.lowest_price}</p>
-          {playcount !== null && (
-            <p><strong>Playcount (Last.fm):</strong> {playcount}</p>
-          )}
-          {loadingStats && <p>Loading marketplace stats...</p>}
-        </div>
-      </div>
+        {loadingStats ? (
+        <div className="loading-spinner">Loading...</div> // Replace with a spinner component if desired
+      ) : (
+        <>
+          <img
+            src={info.cover_image}
+            alt={info.title}
+            className="modal-image"
+          />
+          <div className="modal-details">
+            <h1>{info.title}</h1>
+            <h2>{info.artists[0]?.name}</h2>
+            <h4>{info.year}</h4>
+            <p><strong>Label:</strong> {info.labels[0]?.name}</p>
+            <p><strong>Date Added:</strong> {formattedDateAdded}</p>
+            <p><strong>Location Purchased:</strong> {customFields['Purchase location']}</p>
+            <p><strong>Purchase Date:</strong> {customFields['Date purchased']}</p>
+            <p><strong>Price Paid:</strong> ${customFields['Purchase price']}</p>
+            <p><strong>Last Marketplace Price:</strong> {marketplaceStats?.lowest_price?.value ? `$${marketplaceStats.lowest_price.value.toFixed(2)}` : 'N/A'}</p>
+            {playcount !== null && (
+              <p><strong>Playcount (Last.fm):</strong> {playcount}</p>
+            )}
+          </div>
+        </>
+      )}
     </div>
-  );
+  </div>
+);
 };
 
 export default Modal;

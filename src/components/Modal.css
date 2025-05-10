@@ -84,8 +84,7 @@ margin-top: 0;
   }
   
   .modal-close:hover {
-    transform: scale(1.2);
-    background-color: #ff5c5c;
+    transform: rotate(180deg) scale(1.1);
   }
 
 .modal-details h2 {
