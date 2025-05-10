@@ -19,34 +19,37 @@ const LASTFM_USERNAME = 'morganjb';
 
 const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
   const [playcount, setPlaycount] = useState<number | null>(null);
+  const [marketplaceStats, setMarketplaceStats] = useState<any | null>(null);
+  const [loadingStats, setLoadingStats] = useState<boolean>(false);
 
   useEffect(() => {
     if (!album || !album.basic_information) return;
-  
+
+    // Function to fetch Last.fm playcount
     const fetchAlbumPlaycount = async () => {
       try {
-        const albumId = album.id?.toString(); // 👈 Properly scoped inside the function
+        const albumId = album.id?.toString(); // Properly scoped inside the function
         const override = lastFmOverrides[albumId];
-  
         const artist = override?.artist || album.basic_information.artists?.[0]?.name || "";
         const title = override?.title || album.basic_information.title;
-  
+
         if (!artist || !title) return; // Avoid making a bad request
-  
+
         const response = await fetch(
           `https://ws.audioscrobbler.com/2.0/?method=album.getinfo&api_key=${LASTFM_API_KEY}&artist=${encodeURIComponent(artist)}&album=${encodeURIComponent(title)}&username=${LASTFM_USERNAME}&format=json`
         );
         const data = await response.json();
-        if (!data.album) {
-            console.warn(`No album data returned for Discogs title "${album.basic_information.title}" (Discogs ID: ${albumId}) using artist "${artist}" and album "${title}"`);
-            return;
-          }
-    
-          const lastfmTitle = data.album?.name;
-          if (lastfmTitle && lastfmTitle !== title) {
-            console.info(`Title mismatch (Discogs ID: ${albumId}): Discogs "${title}" vs Last.fm "${lastfmTitle}"`);
-          }
         
+        if (!data.album) {
+          console.warn(`No album data returned for Discogs title "${album.basic_information.title}" (Discogs ID: ${albumId}) using artist "${artist}" and album "${title}"`);
+          return;
+        }
+
+        const lastfmTitle = data.album?.name;
+        if (lastfmTitle && lastfmTitle !== title) {
+          console.info(`Title mismatch (Discogs ID: ${albumId}): Discogs "${title}" vs Last.fm "${lastfmTitle}"`);
+        }
+
         const count = data.album?.userplaycount || 0;
         setPlaycount(count);
       } catch (err) {
@@ -54,14 +57,41 @@ const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
         setPlaycount(null);
       }
     };
-  
-    fetchAlbumPlaycount();
-  }, [album]);
+
+    // Function to fetch Discogs marketplace stats (e.g., price)
+    const fetchMarketplaceStats = async (releaseId: string) => {
+      setLoadingStats(true);
+      try {
+        const response = await fetch(`https://api.discogs.com/marketplace/stats/${releaseId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch marketplace stats');
+        }
+        const data = await response.json();
+        setMarketplaceStats(data);
+      } catch (error) {
+        console.error('Failed to fetch marketplace stats', error);
+        setMarketplaceStats(null);
+      } finally {
+        setLoadingStats(false);
+      }
+    };
+
+    // Trigger both fetches in parallel
+    const fetchData = async () => {
+      const albumId = album.id?.toString();
+      const releaseId = album.basic_information?.id?.toString();
+      if (releaseId) {
+        fetchMarketplaceStats(releaseId);
+      }
+      fetchAlbumPlaycount();
+    };
+
+    fetchData();
+  }, [album, isOpen]); // Trigger fetch on album change or modal open
 
   if (!isOpen || !album || !album.basic_information) return null;
 
   const info = album.basic_information;
-
   const formattedDateAdded = new Date(album.date_added).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -105,6 +135,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
           {playcount !== null && (
             <p><strong>Playcount (Last.fm):</strong> {playcount}</p>
           )}
+          {loadingStats && <p>Loading marketplace stats...</p>}
         </div>
       </div>
     </div>
