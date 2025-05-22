@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
+import { useQuery } from '@tanstack/react-query';
+import ReactPaginate from 'react-paginate';
 import './AlbumGrid.css';
-import Modal from "./Modal";
-
-// Normalize function to make comparisons more consistent
-const normalize = (str: string) =>
-  str.toLowerCase().replace(/[^a-z0-9]/gi, '').trim();
+import Modal from './Modal';
 
 interface Album {
   id: number;
@@ -15,87 +13,106 @@ interface Album {
     artists: { name: string }[];
     year: string;
     label: string;
-    released: string; // Release date (sometimes this might need to be formatted)
+    released: string;
   };
-  date_added: string;  // When the album was added to your collection
-  location: string;    // Custom field for the location purchased
-  purchase_date: string; // Custom field for purchase date
-  price_paid: number;  // Custom field for price paid
-  last_price: number;  // Custom field for last marketplace price
+  date_added: string;
+  location?: string;
+  purchase_date?: string;
+  price_paid?: number;
+  last_price?: number;
 }
 
-const AlbumGrid: React.FC = () => {
-  const [albums, setAlbums] = useState<Album[]>([]);  // Local state to store albums
-  const [isModalOpen, setIsModalOpen] = useState(false);  // State to track if modal is open
-  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);  // State to store selected album
+const fetchAlbums = async (page: number, perPage: number): Promise<{ releases: Album[]; pagination: { pages: number } }> => {
+  const res = await axios.get('https://api.discogs.com/users/morganjb/collection/folders/0/releases', {
+    params: {
+      per_page: perPage,
+      page,
+      sort: 'added',
+      sort_order: 'desc',
+    },
+    headers: {
+      Authorization: 'Discogs token=RdrvXEBTzPsnMmycwuPtxQsGzeWkPzjsWFULdMvl',
+      'User-Agent': 'MyDiscogsApp/1.0',
+    },
+  });
+  return res.data;
+};
 
-  // Function to open the modal
+const AlbumGrid: React.FC = () => {
+  const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
+
+  const { data, isLoading, isError, error, isFetching } = useQuery({
+    queryKey: ['albums', page, perPage],
+    queryFn: () => fetchAlbums(page, perPage),
+  });
+
   const openModal = (album: Album) => {
-    console.log("Opening Modal with album:", album);
     setSelectedAlbum(album);
     setIsModalOpen(true);
   };
 
-  // Function to close the modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedAlbum(null);
   };
 
-  // Fetch albums from the API when the component mounts
-  useEffect(() => {
-    axios
-      .get('https://api.discogs.com/users/morganjb/collection/folders/0/releases', {
-        params: {
-          per_page: 20,
-          sort: 'added',
-          sort_order: 'desc',
-        },
-        headers: {
-          Authorization: 'Discogs token=RdrvXEBTzPsnMmycwuPtxQsGzeWkPzjsWFULdMvl',
-          'User-Agent': 'MyDiscogsApp/1.0',
-        },
-      })
-      .then((res) => {
-        // Map through the results and format the data
-        const formattedAlbums = res.data.releases.map((album: any) => ({
-          id: album.id,
-          basic_information: album.basic_information,
-          date_added: album.date_added,
-          notes: album.notes || [],
-          last_price: album.lowest_price ?? 0, // Fallback
-        }));
-        setAlbums(formattedAlbums);
-      })
-      .catch(console.error);
-  }, []);
+  const handlePageClick = (event: { selected: number }) => {
+    setPage(event.selected + 1);
+  };
+
+  const handlePerPageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setPerPage(Number(e.target.value));
+    setPage(1); // Reset to first page on perPage change
+  };
+
+  if (isLoading) return <div>Loading...</div>;
+  if (isError) return <div>Error: {(error as Error).message}</div>;
 
   return (
-    <div className="grid">
-      {albums.map((item) => (
-        <div
-          key={item.id}
-          className="album-card"
-          onClick={() => openModal(item)} // Corrected: openModal with the clicked album
-        >
-          <img
-            src={item.basic_information.cover_image}
-            alt={item.basic_information.title}
-          />
-          <h4>{item.basic_information.title}</h4>
-          <p>{item.basic_information.artists[0]?.name}</p>
-        </div>
-      ))}
+    <>
+      <div style={{ marginBottom: 10 }}>
+        <label htmlFor="perPage">Albums per page: </label>
+        <select id="perPage" value={perPage} onChange={handlePerPageChange}>
+          {[10, 20, 50].map((num) => (
+            <option key={num} value={num}>
+              {num}
+            </option>
+          ))}
+        </select>
+      </div>
 
-      {/* Render the Modal component if it is open */}
-      {selectedAlbum && (
-        <Modal
-          isOpen={isModalOpen}
-          album={selectedAlbum}
-          closeModal={closeModal}
+      <div className="grid">
+        {data?.releases.map((album) => (
+          <div key={album.id} className="album-card" onClick={() => openModal(album)}>
+            <img src={album.basic_information.cover_image} alt={album.basic_information.title} />
+            <h4>{album.basic_information.title}</h4>
+            <p>{album.basic_information.artists[0]?.name}</p>
+          </div>
+        ))}
+      </div>
+
+      {data && data.pagination && data.pagination.pages > 1 && (
+        <ReactPaginate
+          previousLabel={'← Previous'}
+          nextLabel={'Next →'}
+          pageCount={data.pagination.pages}
+          onPageChange={handlePageClick}
+          forcePage={page - 1}
+          containerClassName={'pagination'}
+          activeClassName={'active'}
+          disabledClassName={'disabled'}
         />
       )}
-    </div>
+
+      {selectedAlbum && (
+        <Modal isOpen={isModalOpen} album={selectedAlbum} closeModal={closeModal} />
+      )}
+
+      {isFetching && <div>Updating...</div>}
+    </>
   );
 };
 
