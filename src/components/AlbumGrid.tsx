@@ -44,10 +44,14 @@ const AlbumGrid: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
 
-  const { data, isLoading, isError, error, isFetching } = useQuery({
-    queryKey: ['albums', page, perPage],
-    queryFn: () => fetchAlbums(page, perPage),
-  });
+const { data, isLoading, isError, error, isFetching } = useQuery<
+  { releases: Album[]; pagination: { pages: number } },
+  Error
+>({
+  queryKey: ['albums', page, perPage],
+  queryFn: () => fetchAlbums(page, perPage),
+  placeholderData: (prevData) => prevData,
+});
 
   const openModal = (album: Album) => {
     setSelectedAlbum(album);
@@ -72,48 +76,73 @@ const AlbumGrid: React.FC = () => {
   if (isError) return <div>Error: {(error as Error).message}</div>;
 
   return (
-    <>
-      <div style={{ marginBottom: 10 }}>
-        <label htmlFor="perPage">Albums per page: </label>
-        <select id="perPage" value={perPage} onChange={handlePerPageChange}>
-          {[10, 20, 50].map((num) => (
-            <option key={num} value={num}>
-              {num}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="grid">
-        {data?.releases.map((album) => (
-          <div key={album.id} className="album-card" onClick={() => openModal(album)}>
-            <img src={album.basic_information.cover_image} alt={album.basic_information.title} />
-            <h4>{album.basic_information.title}</h4>
-            <p>{album.basic_information.artists[0]?.name}</p>
-          </div>
+  <>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+      <label htmlFor="perPage" style={{ marginRight: 8 }}>Albums per page:</label>
+      <select
+        id="perPage"
+        value={perPage}
+        onChange={handlePerPageChange}
+        style={{
+          padding: '6px 10px',
+          borderRadius: 8,
+          border: '1px solid #ccc',
+          cursor: 'pointer',
+        }}
+      >
+        {[10, 20, 50].map((num) => (
+          <option key={num} value={num}>
+            {num}
+          </option>
         ))}
-      </div>
+      </select>
+    </div>
 
-      {data && data.pagination && data.pagination.pages > 1 && (
-        <ReactPaginate
-          previousLabel={'← Previous'}
-          nextLabel={'Next →'}
-          pageCount={data.pagination.pages}
-          onPageChange={handlePageClick}
-          forcePage={page - 1}
-          containerClassName={'pagination'}
-          activeClassName={'active'}
-          disabledClassName={'disabled'}
-        />
-      )}
+    <div className="grid">
+      {data?.releases.map((album) => (
+        <div
+          key={album.id}
+          className="album-card"
+          onClick={() => openModal(album)}
+        >
+          <img
+            src={album.basic_information.cover_image}
+            alt={album.basic_information.title}
+          />
+          <h4>{album.basic_information.title}</h4>
+          <p>{album.basic_information.artists[0]?.name}</p>
+        </div>
+      ))}
+    </div>
 
-      {selectedAlbum && (
-        <Modal isOpen={isModalOpen} album={selectedAlbum} closeModal={closeModal} />
-      )}
+    {data && data.pagination && data.pagination.pages > 1 && (
+      <ReactPaginate
+        previousLabel={'← Previous'}
+        nextLabel={'Next →'}
+        pageCount={data.pagination.pages}
+        onPageChange={handlePageClick}
+        forcePage={page - 1}
+        containerClassName={'pagination'}
+        pageClassName={'page'}
+        activeClassName={'active'}
+        previousClassName={'previous'}
+        nextClassName={'next'}
+        disabledClassName={'disabled'}
+      />
+    )}
 
-      {isFetching && <div>Updating...</div>}
-    </>
-  );
+    {selectedAlbum && (
+      <Modal
+        isOpen={isModalOpen}
+        album={selectedAlbum}
+        closeModal={closeModal}
+      />
+    )}
+
+    {isFetching && <div>Updating...</div>}
+  </>
+);
+
 };
 
 export default AlbumGrid;
