@@ -44,7 +44,12 @@ export const useSuggestedPrice = (releaseId: string) => {
         }
       } catch (err) {
         console.error('Error fetching suggested price:', err);
-        setError(err.message || 'Failed to fetch suggested price');
+        if (err instanceof Error) {
+        setError(err.message);
+        } else {
+          setError('Failed to fetch suggested price');
+        }
+        
       } finally {
         setLoading(false);
       }

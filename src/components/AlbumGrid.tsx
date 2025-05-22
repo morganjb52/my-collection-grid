@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import './AlbumGrid.css';
-import Modal from "./Modal.tsx";
+import Modal from "./Modal";
 
 // Normalize function to make comparisons more consistent
 const normalize = (str: string) =>

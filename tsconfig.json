@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES6",                          // Output JS version; ES6 is a good baseline for browsers and Node.
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],// Include standard libs for browser and latest JS features.
+    "allowJs": true,                         // Allow importing .js files if you have any.
+    "skipLibCheck": true,                    // Speed up compilation by skipping type checks in node_modules.
+    "esModuleInterop": true,                 // Enables compatibility with CommonJS modules.
+    "allowSyntheticDefaultImports": true,   // Allow default imports from modules with no default export.
+    "strict": true,                          // Enable all strict type-checking options (recommended for safer code).
+    "forceConsistentCasingInFileNames": true, // Prevents case mismatches in imports.
+    "module": "ESNext",                      // Module code generation; ESNext works well with bundlers like Vite or Webpack.
+    "moduleResolution": "Node",              // Use Node-style resolution for modules.
+    "resolveJsonModule": true,               // Allows importing JSON files as modules.
+    "isolatedModules": true,                 // Ensures each file can be transpiled separately (needed for React projects).
+    "noEmit": true,                         // Don’t output files, just type-check (your bundler handles transpiling).
+    "jsx": "react-jsx"                       // Use the new React JSX transform (React 17+).
+  },
+  "include": ["src"],                        // Only include your source code folder.
+  "exclude": ["node_modules", "build"]      // Exclude these folders from type-checking.
+}

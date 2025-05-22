@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Modal.css';
-import { lastFmOverrides } from './manualOverrides.ts';
+import { lastFmOverrides } from './manualOverrides';
 import { X } from 'lucide-react';
 
 interface ModalProps {
@@ -102,7 +102,8 @@ const Modal: React.FC<ModalProps> = ({ isOpen, album, closeModal }) => {
   const getCustomFields = (notes: any[]) => {
     const fields: Record<string, string> = {};
     notes?.forEach(note => {
-      const label = CUSTOM_FIELDS[note.field_id];
+      const fieldId = note.field_id as keyof typeof CUSTOM_FIELDS;
+      const label = CUSTOM_FIELDS[fieldId];
       if (label) {
         fields[label] = note.value;
       }
